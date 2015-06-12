@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	<title>Manager Of Legends</title>
+</head>
+<body>
+	<div id="banner">
+		<h1 id="banner-text">Manager Of Legends</h1>
+	</div>
+	<div id="container-main">
+		<div id="guidence">
+			<div class="alert-danger"><p id="aler-danger-text"></p></div>
+			<p id="guidence-text"></p>
+		</div>
+		<div id="loading"></div>
+		<div class="form" id="form-recovery">
+			<input class="form-username" id="recovery-Username" type="text" autocomplete="off" placeholder="username" name="username">
+			<input class="form-password" id="recovery-Password" type="password" autocomplete="off" placeholder="new password" name="password">
+			<input class="form-recoveryCode" id="recovery-Code" type="text" autocomplete="off" placeholder="code" name="recoveryCode">
+			<button class="btn-send" id="recovery-send">Send</button>
+		</div>
+		<hr>
+		<p>Already have an account? <a href="/login">Login</a></p>
+		<p>Or go <a href="/">home</a></p>
+	</div>
+	<script src="/js/lib/jquery-1.11.0.min.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			var recovery = {
+				stage: 0,
+				text: 'Please enter your username'
+			}, 
+				username = null,
+				guadenceText = $('#guidence-text')[0],
+				recoverySend = $('#recovery-send')
+				recoveryUsername = $('#recovery-Username'),
+				recoveryPassword = $('#recovery-Password'),
+				recoveryCode = $('#recovery-Code'),
+				alertDangerText = $('#aler-danger-text')[0],
+				loading = $('#loading'),
+				form = $('#form-recovery');
+
+			guadenceText.innerHTML = recovery.text;
+			recoverySend.on('click', function(){
+				alertDangerText.innerHTML = '';
+				switch(recovery.stage){
+					case 0:
+						username = recoveryUsername[0].value;
+						loading.show();
+						form.hide();
+						$.ajax({
+							url: '/recovery/first',
+							type: 'POST',
+							data: "username=" + encodeURIComponent(username),
+							success: function(data){
+								if(data.passed){
+									loading.hide();
+									form.show();
+									recoveryUsername.hide();
+							   		recoveryPassword.show();
+									recoveryCode.show();
+									recovery.stage++;
+									recovery.text = 'Please enter the your password and the code which we send you to your email';
+									guadenceText.innerHTML = recovery.text;
+								} else {
+									loading.hide();
+									form.show();
+									alertDangerText.innerHTML = data.text;
+								}
+							}
+						});
+				    	break;
+				    case 1:
+				    	loading.show();
+						form.hide();
+						$.ajax({
+							url: '/recovery/second',
+							type: 'POST',
+							data: "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(recoveryPassword[0].value) + "&recoveryCode="+encodeURIComponent(recoveryCode[0].value),
+							success: function(data){
+								if(data.passed){
+									loading.hide();
+									form.show();
+									recoveryPassword.hide();
+									recoveryCode.hide();
+									recoverySend.hide();
+									recovery.stage++;
+									recovery.text = 'Your Password was changed';
+									guadenceText.innerHTML = recovery.text;
+								} else {
+									loading.hide();
+									form.show();
+									alertDangerText.innerHTML = data.text;
+								}
+							}
+						});
+						break;
+					case 2:
+						recovery.stage = 0;
+						recovery.text = 'Please enter your username';
+						guadenceText.innerHTML = recovery.text;
+						break;
+				}
+			});
+		});
+	</script>
+</body>
+</html>

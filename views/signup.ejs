@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	<title>Manager Of Legends</title>
+</head>
+<body>
+	<div id="banner">
+		<h1 id="banner-text">Manager Of Legends</h1>
+	</div>
+	<div id="container-main">
+		<% if (isSignUpOpen.length > 0) { %>
+			<div id="signup-closed">
+				<p>We are sorry, but we have too many registered users right now. Please try again later</p>
+			</div>
+		<% } else { %>
+			<% if (message.length > 0) { %>
+				<div class="alert-danger"><p id="aler-danger-text"><%= message %></p></div>
+			<% } %>
+
+			<form action="/signup" method="post">
+				<p><input class="form-username" type="text" autocomplete="off" placeholder="username" name="username"></p>
+				<p><input class="form-password" type="password" autocomplete="off" placeholder="password" name="password"></p>
+				<p><input class="form-email" type="text" name="email" autocomplete="off" placeholder="email"></p>
+				<button class="btn-send" type="submit">Signup</button>
+			</form>
+
+			<hr>
+			<p>Already have an account? <a href="/login">Login</a></p>
+			<p>Or go <a href="/">home</a></p>
+		<% } %>
+	</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/css/main.css">
+		<title>Manager Of Legends</title>
+	</head>
+	<body>
+		<div id="banner">
+			<h1 id="banner-text">Manager Of Legends</h1>
+		</div>
+		<div id="menu-main">
+			<ul>
+				<li><a href="/main">Home</a></li>
+			    <%if (role === 'admin') { %>
+				<li><a href="/admin">Admin Panel</a></li>
+				<% } %>
+				<li>Messages <span id="messages-length"></span>
+					<ul id="messages-ul">
+					</ul>
+				</li>
+				<li><a href="/settings">Settings</a></li>
+				<li><a href="/logout">Logout</a></li>
+			</ul>
+		</div>
+		<div id="chatBox">
+	    	<div style="height: 18px;">
+	    		<p id="chatBox-with"></p>
+	    		<p id="chatBox-close">X</p>
+	    	</div>
+	        <div id="chatBox-messageBox"></div>
+	        <input id="chatBox-input" autocomplete="off"><button id="chatBox-sendMessage">Send</button>
+    	</div>
+    	<div>
+    		<p id="hideUsersList"><span></span></p>
+		    <div id="users"></div>
+		    <div id="users-down"></div>
+		    <div id="user-menu"></div>
+    	</div>
+	    <div id="container-main">
+			<p>Hi, <%= username %>!</p>
+    	</div>
+	    <script src="/js/lib/jquery-1.11.0.min.js"></script>
+	    <script src="/socket.io/socket.io.js"></script>
+	    <script src="/js/main.js"></script>
+    </body>
+</html>

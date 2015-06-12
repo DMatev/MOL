@@ -1,0 +1,471 @@
+<!doctype html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/css/main.css">
+		<title>Manager Of Legends</title>
+	</head>
+	<body>
+		<div id="banner">
+			<h1 id="banner-text">Manager Of Legends</h1>
+		</div>
+		<div id="menu-main">
+			<ul>
+				<li><a href="/main">Home</a></li>
+			    <%if (role === 'admin') { %>
+				<li><a href="/admin">Admin Panel</a></li>
+				<% } %>
+				<li>Messages <span id="messages-length"></span>
+					<ul id="messages-ul">
+					</ul>
+				</li>
+				<li><a href="/settings">Settings</a></li>
+				<li><a href="/logout">Logout</a></li>
+			</ul>
+		</div>
+		<div id="chatBox">
+	    	<div style="height: 18px;">
+	    		<p id="chatBox-with"></p>
+	    		<p id="chatBox-close">X</p>
+	    	</div>
+	        <div id="chatBox-messageBox"></div>
+	        <input id="chatBox-input" autocomplete="off"><button id="chatBox-sendMessage">Send</button>
+    	</div>
+    	<div>
+    		<p id="hideUsersList"><span></span></p>
+		    <div id="users"></div>
+		    <div id="users-down"></div>
+		    <div id="user-menu"></div>
+    	</div>
+	    <div id="container-main">
+	    	<div id="menu-admin">
+				<ul>
+					<li>News
+						<ul>
+							<li id="view-all-news">View all news</li>
+							<li id="post-news">Post news</li>
+						</ul>	
+					</li>
+					<li>Users
+						<ul>
+							<li id="view-all-users">View all users</li>
+							<li id="serach-for-user">Search for user</li>
+						</ul>	
+					</li>
+				</ul>
+			</div>
+			<div id="countainer-admin">
+				<div class="alert-danger"><p id="aler-danger-text"></p></div>
+				<div id="container-allNews"></div>
+				<div id="container-postNews">
+					<p><input id="news-title-input" class="form-username" type="text" placeholder="title" autocomplete="off"></p>
+					<p><textarea id="news-content-input" cols="120" rows="20" placeholder="content"></textarea></p>
+					<p>
+						<div id="container-text-decoration">
+							<div id="td-h1" class="btn-text-decoration">h1</div>
+							<div id="td-h2" class="btn-text-decoration">h2</div>
+							<div id="td-h3" class="btn-text-decoration">h3</div>
+							<div id="td-h4" class="btn-text-decoration">h4</div>
+							<div id="td-h5" class="btn-text-decoration">h5</div>
+							<div id="td-h6" class="btn-text-decoration">h6</div>
+							<div id="td-p" class="btn-text-decoration">p</div>
+							<div id="td-b" class="btn-text-decoration">b</div>
+							<div id="td-i" class="btn-text-decoration">i</div>
+							<div id="td-strong" class="btn-text-decoration">strong</div>
+							<div id="td-em" class="btn-text-decoration">em</div>
+							<div id="td-strike" class="btn-text-decoration">strike</div>
+						</div>
+						<p>
+							<input id="news-author-input" class="form-username" type="text" placeholder="author" autocomplete="off">
+							<input id="news-published-checkbox" type="checkbox" autocomplete="off"><label>published</label>
+						</p>
+						
+					</p>
+					<button id="news-save-button">Save</button>
+					<button id="news-delete-button">Delete</button>
+				</div>
+				<div id="container-users"></div>
+				<div id="container-searchUser">
+					<input id="searchUser-input" class="form-username" type="text" placeholder="username" autocomplete="off">
+					<button id="searchUser-button">Search</button>
+				</div>
+				<div id="container-reviewUser">
+					<p id="username-review"></p>
+					<p><input id="newPassword-input" class="form-password" type="password" placeholder="new password" autocomplete="off"></p>
+					<p><input id="email-input" class="form-email" type="text" placeholder="email" autocomplete="off"></p>
+					<p id="recoveryCode-review"></p>
+					<p><input id="recoveryCode-checkbox" type="checkbox"><label>make new recovery code</label></p>
+					<p><input id="role-input" class="form-role" type="text" placeholder="role" autocomplete="off"></p>
+					<p><input id="banned-checkbox" type="checkbox" autocomplete="off"><label>ban</label></p>
+					<p><input id="banned-input" class="form-banned" type="text" placeholder="dd-mm-year" autocomplete="off"></p>
+					<button id="settings-save-button" class="btn-save">Save</button>
+				</div>
+			</div>
+    	</div>
+	    <script src="/js/lib/jquery-1.11.0.min.js"></script>
+	    <script src="/socket.io/socket.io.js"></script>
+	    <script src="/js/main.js"></script>
+	    <script type="text/javascript">
+	    	$(function() {
+	    		var news = {
+	    			isOpenForReview: false,
+	    			currentNewsId: null,
+	    			loadAll: function (){
+	    				$('#aler-danger-text')[0].innerHTML = '';
+		    			$('#container-postNews').hide();
+		    			$('#container-users').hide();
+		    			$('#container-searchUser').hide();
+		    			$('#container-reviewUser').hide();
+		    			$('#container-allNews').empty();
+		    			$('#container-allNews').show('fast');
+		    			$.ajax({
+					      type: 'GET',
+					      url: '/admin/news',
+					      success: function (data){
+					      	var date, strDate, title, regex = /(<([^>]+)>)/ig;
+					      	if(data.passed){
+					      		$('<table id="news-table"><tr><th>Title</th><th>Author</th><th>Punlication date</th><th>Posted</th></tr></table>')
+					      		.appendTo('#container-allNews');
+					      		for(var i=0; i<data.news.length; i++){
+					      			title =  data.news[i].title.replace(regex, "");
+					      			date = new Date(data.news[i].createDate);
+					      			strDate =  date.getHours() + ':' + date.getMinutes() + ' at ' +  date.getDate() + '.' + (date.getMonth() + 1) + '.' + date.getFullYear();
+					      			$('<tr><td>' + title + '</td><td>' + data.news[i].author + '</td><td>' + strDate + '</td><td>' + data.news[i].visible + '</td></tr>')
+					      			.css({ cursor: 'pointer'})
+					      			.on('click', { news: data.news[i] }, function (event){
+					      				news.loadOne(event.data.news);
+					      			})
+					      			.appendTo('#news-table');
+					      		}
+					      	} else {
+					      		visual.alertBox('Getting news', data.text);
+					      	}
+					      },
+					      error: function (){
+					        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+					      }
+					    });
+	    			},
+	    			loadOne: function (news){
+	    				this.isOpenForReview = true;
+	    				this.currentNewsId = news._id;
+	    				$('#aler-danger-text')[0].innerHTML = '';
+	    				$('#news-title-input')[0].value = news.title;
+	    				$('#news-content-input')[0].value = news.content;
+	    				$('#news-author-input')[0].value = news.author;
+	    				$('#news-published-checkbox')[0].checked = news.visible;
+		    			$('#container-users').hide();
+		    			$('#container-searchUser').hide();
+		    			$('#container-reviewUser').hide();
+		    			$('#container-allNews').hide();
+		    			$('#container-postNews').show('fast');
+		    			$('#news-delete-button').show();
+	    			},
+	    			loadPost: function (){
+	    				this.isOpenForReview = false;
+	    				this.currentNewsId = null;
+	    				$('#aler-danger-text')[0].innerHTML = '';
+	    				$('#news-title-input')[0].value = '';
+	    				$('#news-content-input')[0].value = '';
+	    				$('#news-author-input')[0].value = '';
+	    				$('#news-published-checkbox')[0].checked = true;
+	    				textDecoration.clearTags();
+	    				$('#news-delete-button').hide();
+		    			$('#container-users').hide();
+		    			$('#container-searchUser').hide();
+		    			$('#container-reviewUser').hide();
+		    			$('#container-allNews').hide();
+		    			$('#container-postNews').show('fast');
+	    			},
+	    			edit: function (){
+	    				var data = 'id=' + news.currentNewsId + '&visible=' + $('#news-published-checkbox')[0].checked;
+	    				textDecoration.autoCloseTags();
+	    				if($('#news-title-input')[0].value !== ''){
+	    					data += '&title=' + encodeURIComponent($('#news-title-input')[0].value);
+	    				}
+	    				if($('#news-content-input')[0].value !== ''){
+	    					data += '&content=' + encodeURIComponent($('#news-content-input')[0].value);
+	    				}
+	    				if($('#news-author-input')[0].value !== ''){
+	    					data += '&author=' + encodeURIComponent($('#news-author-input')[0].value);
+	    				}
+		    			$.ajax({
+					      type: 'post',
+					      url: '/admin/news/edit',
+					      data: data,
+					      success: function (data){
+					      	visual.alertBox('Editing news', data.text);
+					      },
+					      error: function (){
+					        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+					      }
+					    });  
+	    			},
+	    			post: function (){
+	    				var that = this, data = '&visible=' + $('#news-published-checkbox')[0].checked;
+	    				textDecoration.autoCloseTags();
+	    				if($('#news-title-input')[0].value !== ''){
+	    					data += '&title=' + encodeURIComponent($('#news-title-input')[0].value);
+	    				}
+	    				if($('#news-content-input')[0].value !== ''){
+	    					data += '&content=' + encodeURIComponent($('#news-content-input')[0].value);
+	    				}
+	    				if($('#news-author-input')[0].value !== ''){
+	    					data += '&author=' + encodeURIComponent($('#news-author-input')[0].value);
+	    				}
+		    			$.ajax({
+					      type: 'post',
+					      url: '/admin/news',
+					      data: data,
+					      success: function (data){
+					      	if(data.passed){
+					      		visual.alertBox('Posting news', data.text);
+					      		that.loadPost();
+					      	} else {
+					      		$('#aler-danger-text')[0].innerHTML = data.text;
+					      	}
+					      },
+					      error: function (){
+					        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+					      }
+					    });  
+	    			},
+	    			remove: function (){
+	    				var that = this;				
+		    			$.ajax({
+					      type: 'post',
+					      url: '/admin/news/delete',
+					      data: 'id=' + news.currentNewsId,
+					      success: function (data){
+					      	if(data.passed){
+					      		visual.alertBox('Deleting news', data.text);
+					      		that.loadPost();
+					      	} else {
+					      		visual.alertBox('Deleting news', data.text);
+					      	}
+					      	
+					      },
+					      error: function (){
+					        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+					      }
+					    });  
+	    			}
+	    		};
+	    		var users = {
+					currentUserId: null,
+					loadAll: function (){
+						$('#aler-danger-text')[0].innerHTML = '';
+						$('#container-allNews').hide();
+		    			$('#container-postNews').hide();
+		    			$('#container-searchUser').hide();
+		    			$('#container-reviewUser').hide();
+		    			$('#container-users').empty();
+		    			$('#container-users').show('fast');
+		    			$.ajax({
+					      type: 'GET',
+					      url: '/admin/users',
+					      success: function (data){
+					      	if(data.passed){
+					      		$('<table id="users-table"><tr><th>Username</th><th>Email</th><th>Role</th><th>Banned</th></tr></table>')
+					      		.appendTo('#container-users');
+					      		for(var i=0; i<data.users.length; i++){
+					      			$('<tr><td>'+ data.users[i].account.username.original + '</td><td>'+ data.users[i].account.email.original + '</td><td>'+ data.users[i].account.role + '</td><td>'+ data.users[i].account.isBanned + '</td></tr>')
+					      			.css({ cursor: 'pointer'})
+					      			.on('click', { user: data.users[i] }, function (event){
+					      				users.loadOne(event.data.user);
+					      			})
+					      			.appendTo('#users-table');
+					      		}
+					      	} else {
+					      		visual.alertBox('Getting users', data.text);
+					      	}
+					      },
+					      error: function (){
+					        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+					      }
+					    });
+					},
+					loadOne: function (user){
+						var date;
+	    				this.currentUserId = user._id;
+	    				$('#aler-danger-text')[0].innerHTML = '';
+	    				$('#username-review')[0].innerHTML = user.account.username.original;
+	    				$('#newPassword-input')[0].value = '';
+	    				$('#email-input')[0].value = user.account.email.original;
+	    				$('#recoveryCode-review')[0].innerHTML = 'Recovery code: ' + user.account.recoveryCode;
+	    				$('#recoveryCode-checkbox')[0].checked = false;
+	    				$('#role-input')[0].value = user.account.role;
+	    				if(user.account.isBanned){
+	    					$('#banned-checkbox')[0].checked = true;
+	    					if(user.account.banExpirationDate !== undefined){
+	    						date = new Date(user.account.banExpirationDate);
+	    						$('#banned-input')[0].value = date.getDate() + '-' + (date.getMonth() + 1) + '-' + date.getFullYear();
+	    					} else {
+	    						$('#banned-input')[0].value = '';
+	    					}
+	    				} else {
+	    					$('#banned-checkbox')[0].checked = false;
+	    					$('#banned-input')[0].value = '';
+	    				}
+						$('#container-allNews').hide();
+		    			$('#container-postNews').hide();
+		    			$('#container-searchUser').hide();
+		    			$('#container-users').hide();
+		    			$('#container-reviewUser').show('fast');
+					},
+					edit: function (){
+	    				var data = 'id=' + users.currentUserId;
+	    				if($('#newPassword-input')[0].value !== ''){
+	    					data += '&newPassword=' + encodeURIComponent($('#newPassword-input')[0].value);
+	    				}
+	    				if($('#email-input')[0].value !== ''){
+	    					data += '&newEmail=' + encodeURIComponent($('#email-input')[0].value);
+	    				}
+	    				if($('#recoveryCode-checkbox')[0].checked === true){
+	    					data += '&newRecoveryCode=true';
+	    				}
+	    				if($('#role-input')[0].value !== ''){
+	    					data += '&newRole=' + encodeURIComponent($('#role-input')[0].value);
+	    				}
+	    				if($('#banned-checkbox')[0].checked === true){
+	    					data += '&isBanned=true';
+	    				} else {
+	    					data += '&isBanned=false';
+	    				}
+	    				if($('#banned-input')[0].value !== ''){
+	    					data += '&banExpirationDate=' + encodeURIComponent($('#banned-input')[0].value);
+	    				}
+		    			$.ajax({
+					      type: 'post',
+					      url: '/admin/user',
+					      data: data,
+					      success: function (data){
+					      	if(data.passed){
+								visual.alertBox('Editing news', data.text);
+								$('#aler-danger-text')[0].innerHTML = '';
+					      	} else {
+					      		$('#aler-danger-text')[0].innerHTML = data.text;
+					      	}
+					      },
+					      error: function (){
+					        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+					      }
+					    });  
+	    			},
+	    			showSearch: function (){
+						$('#aler-danger-text')[0].innerHTML = '';
+						$('#container-allNews').hide();
+		    			$('#container-postNews').hide();
+		    			$('#container-users').hide();
+		    			$('#container-reviewUser').hide();
+		    			$('#searchUser-input')[0].value = '';
+		    			$('#container-searchUser').show('fast');
+					},
+					search: function(){
+						if($('#searchUser-input')[0].value !== ''){
+			    			$.ajax({
+								type: 'get',
+								url: '/admin/user/username/' + encodeURIComponent($('#searchUser-input')[0].value),
+								success: function (data){
+									if(data.passed){
+										users.loadOne(data.user);
+									} else {
+										$('#aler-danger-text')[0].innerHTML = data.text;
+									}
+							  	}
+							});  
+		    			} else {
+		    				$('#aler-danger-text')[0].innerHTML = '';
+		    			}
+					}
+	    		};
+
+	    		var textDecoration = {
+	    			allTags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'strong', 'em', 'strike'],
+	    			openTags: [],
+	    			addString: function (string){
+	    				var cursor = $('#news-content-input').prop("selectionStart"), 
+	    					originalString = $('#news-content-input')[0].value;
+						if(cursor > 0){
+							return originalString.substring(0, cursor) + string + originalString.substring(cursor, originalString.length);
+						} else {
+							return string + originalString;
+						}
+	    			},
+	    			addTag: function (tag){
+	    				var found = false;
+	    				//add closing tag
+	    				for(var i=0; i<this.openTags.length; i++){
+	    					if(tag === this.openTags[i]){
+	    						found = true;
+	    						this.openTags.splice(i,1);
+	    						$('#news-content-input')[0].value = textDecoration.addString('</' + tag + '>');
+	    						return;
+	    					}
+	    				}
+	    				if(!found){
+	    					this.openTags.push(tag);
+	    					$('#news-content-input')[0].value = textDecoration.addString('<' + tag + '>');
+	    				}
+	    			},
+	    			autoCloseTags: function (){
+	    				for(var i=0; i<this.openTags.length; i++){
+	    					$('#news-content-input')[0].value = textDecoration.addString('</' + this.openTags[i] + '>');
+	    				}
+	    				this.openTags = [];
+	    			},
+	    			clearTags: function (){
+	    				this.openTags = [];
+	    				$('#container-text-decoration').children().removeClass('btn-text-decoration-clicked');
+	    			}
+	    		};
+
+	    		$('#view-all-news').on('click', function (){
+	    			news.loadAll();
+	    		});
+
+	    		$('#post-news').on('click', function (){
+	    			news.loadPost();
+	    		});
+
+	    		$('#news-save-button').on('click', function (){
+	    			if(news.isOpenForReview){
+	    				news.edit();
+	    			} else {
+	    				news.post();
+	    			}
+	    		});
+
+	    		$('#news-delete-button').on('click', function (){
+	    			if(news.isOpenForReview){
+	    				news.remove();
+	    			}
+	    		});
+
+	    		$('#view-all-users').on('click', function (){
+	    			users.loadAll();
+	    		});
+
+	    		$('#settings-save-button').on('click', function (){
+	    			users.edit();
+	    		});
+
+	    		$('#serach-for-user').on('click', function (){
+	    			users.showSearch();
+	    		});
+
+	    		$('#searchUser-button').on('click', function (){
+					users.search();
+	    		});
+
+	    		//text-decoration
+	    		for(var i=0; i<textDecoration.allTags.length; i++){
+	    			$('#td-' + textDecoration.allTags[i]).on('click', { tag: textDecoration.allTags[i] }, function (event){
+		    			$(this).toggleClass("btn-text-decoration-clicked");
+						textDecoration.addTag(event.data.tag);
+						$('#news-content-input')[0].focus();
+		    		});
+	    		}
+	    	});
+	    </script>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "ManagerOfLegends",
+  "main": "index.js",
+  "dependencies" : {
+    "bcrypt-nodejs" : "~0.0.3",
+    "body-parser" : "~1.4.3",
+    "connect-flash" : "~0.1.1",
+    "connect-mongo": "~0.4.1",
+    "cookie-parser" : "~1.3.2",
+    "cron" : "~1.0.4",
+    "ejs" : "~1.0.0",
+    "express" : "~4.6.1",
+    "express-session" : "~1.6.5",       
+    "jsonwebtoken" : "~0.4.1",
+    "mongoose" : "~3.8.13",
+    "morgan" : "~1.1.1",
+    "nodemailer" : "~1.0.1",
+    "passport" : "~0.2.0",     
+    "passport-local" : "~1.0.0",
+    "sanitize-html" : "~1.2.1",
+    "serve-favicon" : "~2.0.1",
+    "socket.io" : "~1.0.6",
+    "socketio-jwt" : "~2.3.1"
+  }
+}

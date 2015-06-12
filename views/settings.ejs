@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="/css/main.css">
+		<title>Manager Of Legends</title>
+	</head>
+	<body>
+		<div id="banner">
+			<h1 id="banner-text">Manager Of Legends</h1>
+		</div>
+		<div id="menu-main">
+			<ul>
+				<li><a href="/main">Home</a></li>
+			    <%if (role === 'admin') { %>
+				<li><a href="/admin">Admin Panel</a></li>
+				<% } %>
+				<li>Messages <span id="messages-length"></span>
+					<ul id="messages-ul">
+					</ul>
+				</li>
+				<li><a href="/settings">Settings</a></li>
+				<li><a href="/logout">Logout</a></li>
+			</ul>
+		</div>
+		<div id="chatBox">
+	    	<div style="height: 18px;">
+	    		<p id="chatBox-with"></p>
+	    		<p id="chatBox-close">X</p>
+	    	</div>
+	        <div id="chatBox-messageBox"></div>
+	        <input id="chatBox-input" autocomplete="off"><button id="chatBox-sendMessage">Send</button>
+    	</div>
+    	<div>
+    		<p id="hideUsersList"><span></span></p>
+		    <div id="users"></div>
+		    <div id="users-down"></div>
+		    <div id="user-menu"></div>
+    	</div>
+	    <div id="container-main">
+	    	<div class="alert-danger"><p id="aler-danger-text"></p></div>
+			<p><input id="password-input" class="form-password" type="password" placeholder="password" autocomplete="off"></p>
+			<p><input id="newPassword-input" class="form-password" type="password" placeholder="new password" autocomplete="off"></p>
+			<p><input id="email-input" class="form-email" type="text" placeholder="email" autocomplete="off" value="<%= email %>"></p>
+			<p><input id="recoveryCode-checkbox" type="checkbox" autocomplete="off"><label>make new recovery code</label></p>
+			<button id="settings-send-button" class="btn-send">Submit</button>
+    	</div>
+	    <script src="/js/lib/jquery-1.11.0.min.js"></script>
+	    <script src="/socket.io/socket.io.js"></script>
+	    <script src="/js/main.js"></script>
+	    <script type="text/javascript">
+	    	$(function() {
+				$('#settings-send-button').on('click', function (){
+					var password = $('#password-input')[0].value,
+						newPassword = $('#newPassword-input')[0].value,
+						email = $('#email-input')[0].value,
+						recoveryCode = $('#recoveryCode-checkbox')[0].checked,
+						data;
+					data = "password=" + encodeURIComponent(password) + "&newEmail=" + encodeURIComponent(email);
+					if(newPassword !== ''){
+						data += "&newPassword=" + encodeURIComponent(newPassword);
+					}
+					if(recoveryCode === true){
+						data += "&newRecoveryCode=true";
+					}
+					$.ajax({
+				      type: 'post',
+				      url: 'settings',
+				      data: data,
+				      success: function (data){
+				      	if(data.passed){
+				      		visual.alertBox('Updating settings', data.text);
+				      		$('#aler-danger-text')[0].innerHTML = '';
+				      		$('#password-input')[0].value = '';
+				      		$('#newPassword-input')[0].value = '';
+				      		$('#recoveryCode-checkbox')[0].checked = false;
+				      	} else {
+				      		$('#aler-danger-text')[0].innerHTML = data.text;
+				      	}
+				      },
+				      error: function (){
+				        visual.alertBox('Server is busy', 'Server is busy, please try again, or contact adminstrator');
+				      }
+				    });  
+				});
+	    	});
+	    </script>
+    </body>
+</html>
